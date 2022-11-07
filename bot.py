@@ -1,7 +1,7 @@
 import math
 
 from game_message import Tick, Action, Spawn, Sail, Dock, Anchor, directions
-from test import line, cubicbezier
+from test import line, cubicbezier, Bitmap
 from vec2 import vec2
 
 class Bot:
@@ -15,6 +15,7 @@ class Bot:
         self.last_position = None
         self.blocked_tiles = []
         self.free_tiles = []
+        self.map_size = [0, 0]
         self.docked_at_spawn = False
         self.spent_ticks = 0
         self.first_dock = None
@@ -31,15 +32,16 @@ class Bot:
 
         if tick.currentLocation is None:
             print(tick.map.topology)
+            print(tick.map.tideLevels)
             for y in range(len(tick.map.topology)):
                 for x in range(len(tick.map.topology[y])):
-                    if tick.map.topology[y][x] - tick.map.tideLevels.max > 0:
+                    if tick.map.topology[y][x] >= (tick.map.tideLevels.min + tick.map.tideLevels.max)//2:
+                        print([x, y], " : ", tick.map.topology[y][x])
                         self.blocked_tiles.append([x, y])
-                    if tick.map.topology[y][x] - tick.map.tideLevels.min < 0:
+                    if tick.map.topology[y][x] < tick.map.tideLevels.min:
                         self.free_tiles.append([x, y])
-
+            self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
             return Spawn(tick.map.ports[0])
-
 
 
         self.current_position = [tick.currentLocation.column, tick.currentLocation.row]
@@ -83,7 +85,7 @@ class Bot:
 
 
 
-        if self.spent_ticks >= 8 or self.return_home:
+        if self.spent_ticks >= 12 or self.return_home:
             self.dock_home()
 
 
@@ -102,7 +104,6 @@ class Bot:
                 print("Moving to new port")
             else:
                 print("No port found")
-                print("Returning home at : ", self.first_dock)
                 self.dock_home()
                 return Sail(self.get_polar_direction(self.current_path[0]))
         else:
@@ -129,14 +130,14 @@ class Bot:
         original_path_points = line(from_pos[0], from_pos[1], to_pos[0], to_pos[1])
         path_points = original_path_points.copy()
         path_midpoint = original_path_points[len(original_path_points)//2]
-        path_angle = vec2(*path_midpoint).angle() + math.pi/2
+        path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi/2
         isValid = self.is_path_blocked(path_points)
         if not isValid:
             print("PATH INVALID TRYING BEZIER CURVE")
 
             attempt_count = 0
             while not isValid and attempt_count <= max_attempt_count:
-                length = -max_attempt_count ** max_attempt_count
+                length = (-1 ** attempt_count) * attempt_count
 
                 for i in [-1, 1]:
                     curve_handle1 = vec2(*path_midpoint).alongAngle(path_angle, i*length)
@@ -152,6 +153,16 @@ class Bot:
                 path_directions = self.get_directions_from_points(path_points)
         else:
             path_directions = self.get_directions_from_points(path_points)
+
+        print("Selected path:")
+        bitmap = Bitmap(self.map_size[0], self.map_size[1])
+        # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
+        for p in path_points:
+            bitmap.set(p[0], p[1])
+            # print(position)
+
+        bitmap.chardisplay()
+
         return path_directions
 
     def get_directions_from_points(self, points):
@@ -166,7 +177,12 @@ class Bot:
         return path_directions
 
     def is_path_blocked(self, points):
-        return not any(point in points for point in self.blocked_tiles)
+        print("checking path validity")
+        print("---------------------------")
+        print(points)
+        print(self.blocked_tiles)
+        print("---------------------------")
+        return not any(point in points for point in self.blocked_tiles) and all(point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in points)
 
 
     def get_polar_direction(self, vector_dir):
