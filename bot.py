@@ -175,6 +175,10 @@ class Bot:
         for p in path_points:
             bitmap.set(p[0], self.map_size[1] - p[1])
             # print(position)
+        for tile in self.blocked_tiles:
+            bitmap.set_symbol(tile[0], self.map_size[1] - tile[1], 'X')
+
+        bitmap.set_symbol(self.current_position[0], self.map_size[1] - self.current_position[1], '0')
 
         bitmap.chardisplay()
 

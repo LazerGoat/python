@@ -26,9 +26,14 @@ class Bitmap():
                 self.map[y + h][x + w] = colour.copy()
 
     def chardisplay(self):
-        txt = [''.join(' ' if bit == self.background else '@'
-                       for bit in row)
-               for row in self.map]
+        txt = []
+        for row in self.map:
+            for bit in row:
+                if bit == self.background:
+                    txt += ' '
+                else:
+                    txt += '@'
+
         # Boxing
         txt = ['|' + row + '|' for row in txt]
         txt.insert(0, '+' + '-' * self.width + '+')
@@ -40,7 +45,13 @@ class Bitmap():
         try:
             self.map[y][x] = colour
         except:
-            print("Err pos: ",[x, y])
+            print("Err pos: ", [x, y])
+
+    def set_symbol(self, x, y, symbol):
+        try:
+            self.map[y][x] = symbol
+        except:
+            print("Err pos: ", [x, y])
 
     def get(self, x, y):
         return self.map[y][x]
@@ -132,7 +143,6 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
     # bitmap.chardisplay()
 
     return filtered_line_pts
-
 
 # Bitmap.cubicbezier = cubicbezier
 #
