@@ -11,12 +11,16 @@ class Bot:
         print("Initializing your super mega duper bot")
         self.moving_to_port = False
         self.current_path = None
-        self.target = [0, 0]
+        self.target_port = [0, 0]
         self.current_position = [0, 0]
         self.last_position = None
+
         self.blocked_tiles = []
         self.free_tiles = []
+        self.topology = []
         self.map_size = [0, 0]
+        self.current_tide = 0
+
         self.docked_at_spawn = False
         self.spent_ticks = 0
         self.first_dock = None
@@ -40,9 +44,12 @@ class Bot:
                         self.blocked_tiles.append([x, y])
                     if tick.map.topology[y][x] < tick.map.tideLevels.min:
                         self.free_tiles.append([x, y])
+
+            self.topology = tick.map.topology
             self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
             return Spawn(tick.map.ports[0])
 
+        self.current_tide = tick.map.tideLevels.max#tick.tideSchedule[2]
         self.current_position = [tick.currentLocation.column, tick.currentLocation.row]
 
         if self.last_position:
@@ -68,7 +75,7 @@ class Bot:
         # print(t)
         print("Current position : " + str(self.current_position))
 
-        map_ports = tick.map.ports.copy()
+        map_ports = tick.map.ports
         values_to_remove = []
         for i in tick.visitedPortIndices:
             values_to_remove.append(map_ports[i])
@@ -81,7 +88,7 @@ class Bot:
                 vec2(port_position.column - self.current_position[0], port_position.row - self.current_position[1]))
         print(port_distances)
         print("Moving: " + str(self.moving_to_port))
-        print("Path: " + str(self.current_path))
+        # print("Path: " + str(self.current_path))
 
         if self.spent_ticks >= 12 or self.return_home:
             self.dock_home()
@@ -95,6 +102,7 @@ class Bot:
                 if path is not None:
                     self.moving_to_port = True
                     self.current_path = path
+                    self.target_port = list(nearest_port)
                 max_attempts -= 1
 
             if self.moving_to_port:
@@ -103,7 +111,8 @@ class Bot:
                 print("No port found")
                 self.dock_home()
                 return Sail(self.get_polar_direction(self.current_path[0]))
-        else:
+
+        if self.moving_to_port:
             if len(self.current_path) == 0:
                 self.moving_to_port = False
                 self.current_path = None
@@ -111,6 +120,14 @@ class Bot:
                 print("Docking at " + str(self.current_position))
                 return Dock()
             else:
+
+                path = self.find_path(self.current_position, self.target_port)
+                if path is not None:
+                    self.current_path = path
+                else:
+                    print("No path found ( I'm stuck :( )")
+                    return Anchor()
+
                 return Sail(self.get_polar_direction(self.current_path[0]))
 
         return Anchor()
@@ -119,7 +136,7 @@ class Bot:
         print("Returning home at : ", self.first_dock)
         self.return_home = True
         self.moving_to_port = True
-        self.current_path = self.find_path(self.current_position, self.first_dock)
+        self.current_path = self.find_path(self.current_position, self.first_dock, max_attempt_count=75)
         self.spent_ticks = 0
 
     def find_path(self, from_pos, to_pos, max_attempt_count=20):
@@ -128,7 +145,7 @@ class Bot:
         path_points = original_path_points.copy()
         path_midpoint = original_path_points[len(original_path_points) // 2]
         path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi / 2
-        isValid = self.is_path_blocked(path_points)
+        isValid = self.is_path_valid(path_points)
         if not isValid:
             print("PATH INVALID TRYING BEZIER CURVE")
 
@@ -141,13 +158,14 @@ class Bot:
                     curve_handle2 = vec2(*path_midpoint).alongAngle(path_angle, i * length)
                     path_points = cubicbezier(from_pos[0], from_pos[1], curve_handle1.x, curve_handle1.y,
                                               curve_handle2.x, curve_handle2.y, to_pos[0], to_pos[1])
-                    isValid = self.is_path_blocked(path_points)
+                    isValid = self.is_path_valid(path_points)
                     if isValid:
+                        path_directions = self.get_directions_from_points(path_points)
                         break
-
                 attempt_count -= -1
-            if isValid:
-                path_directions = self.get_directions_from_points(path_points)
+
+            if not isValid:
+                path_directions = self.get_directions_from_points(original_path_points)
         else:
             path_directions = self.get_directions_from_points(path_points)
 
@@ -155,10 +173,12 @@ class Bot:
         bitmap = Bitmap(self.map_size[0], self.map_size[1])
         # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
         for p in path_points:
-            bitmap.set(p[0], p[1])
+            bitmap.set(p[0], self.map_size[1] - p[1])
             # print(position)
 
         bitmap.chardisplay()
+
+        print("Path: ", path_directions)
 
         return path_directions
 
@@ -173,15 +193,27 @@ class Bot:
 
         return path_directions
 
-    def is_path_blocked(self, points):
+    def is_path_valid(self, points):
         print("checking path validity")
-        print("---------------------------")
-        print(points)
-        print(self.blocked_tiles)
-        print("---------------------------")
-        return not any(point in points for point in self.blocked_tiles) and all(
-            point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in
-            points)
+        # print("---------------------------")
+        # print(points)
+        # print(self.blocked_tiles)
+        # print("---------------------------")
+
+        if not all(0 <= point[0] < self.map_size[0] and 0 <= point[1] < self.map_size[1] for point in points):
+            return False
+
+        valid = True
+        for p in points:
+            if self.topology[p[1]][p[0]] >= self.current_tide:
+                valid = False
+                break
+
+        return valid
+
+        # return not any(point in points for point in self.blocked_tiles) and all(
+        #     point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in
+        #     points)
 
     def get_polar_direction(self, vector_dir):
         h = ""
