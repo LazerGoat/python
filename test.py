@@ -228,7 +228,7 @@ b = [20, 18]
 # blocked_tiles = [[10,10], [11,11], [9,8],[8,10],  [7,10]]
 # blocked_tiles = []
 blocked_tiles = line(0, 10, 21, 10) + line(0, 11, 21, 10)
-
+al = 0
 bitmap = Bitmap(60, 60)
 #
 for tile in blocked_tiles:
