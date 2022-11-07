@@ -49,7 +49,7 @@ class Bot:
             self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
             return Spawn(tick.map.ports[0])
 
-        self.current_tide = tick.map.tideLevels.max#tick.tideSchedule[2]
+        self.current_tide = tick.tideSchedule[0]
         self.current_position = [tick.currentLocation.column, tick.currentLocation.row]
 
         if self.last_position:
@@ -136,7 +136,8 @@ class Bot:
         print("Returning home at : ", self.first_dock)
         self.return_home = True
         self.moving_to_port = True
-        self.current_path = self.find_path(self.current_position, self.first_dock, max_attempt_count=75)
+        self.target_port = self.first_dock
+        self.current_path = self.find_path(self.current_position, self.first_dock, max_attempt_count=30)
         self.spent_ticks = 0
 
     def find_path(self, from_pos, to_pos, max_attempt_count=20):
