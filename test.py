@@ -159,13 +159,12 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 # print(not any(point in b for point in a))
 
 
-
 def find_path(from_pos, to_pos, max_attempt_count=20):
     path_directions = None
     original_path_points = line(from_pos[0], from_pos[1], to_pos[0], to_pos[1])
     path_points = original_path_points.copy()
-    path_midpoint = original_path_points[len(original_path_points)//2]
-    path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi/2
+    path_midpoint = original_path_points[len(original_path_points) // 2]
+    path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi / 2
     isValid = is_path_blocked(path_points)
     # for p in path_points:
     #     bitmap.set(p[0], p[1])
@@ -179,15 +178,14 @@ def find_path(from_pos, to_pos, max_attempt_count=20):
     if not isValid:
         print("PATH INVALID TRYING BEZIER CURVE")
 
-
         attempt_count = 0
         while not isValid and attempt_count <= max_attempt_count:
-            length = (-1 ** attempt_count)*attempt_count
+            length = (-1 ** attempt_count) * attempt_count
 
             for i in [-1, 1]:
 
-                curve_handle1 = vec2(*path_midpoint).alongAngle(path_angle, i*length)
-                curve_handle2 = vec2(*path_midpoint).alongAngle(path_angle, i*length)
+                curve_handle1 = vec2(*path_midpoint).alongAngle(path_angle, i * length)
+                curve_handle2 = vec2(*path_midpoint).alongAngle(path_angle, i * length)
 
                 path_points = cubicbezier(from_pos[0], from_pos[1], round(curve_handle1.x), round(curve_handle1.y),
                                           round(curve_handle2.x), round(curve_handle2.y), to_pos[0], to_pos[1])
@@ -197,10 +195,11 @@ def find_path(from_pos, to_pos, max_attempt_count=20):
 
             attempt_count -= -1
         if isValid:
-            path_directions = path_points#get_directions_from_points(path_points)
+            path_directions = path_points  # get_directions_from_points(path_points)
     else:
-        path_directions = None #get_directions_from_points(path_points)
+        path_directions = None  # get_directions_from_points(path_points)
     return path_directions
+
 
 def get_directions_from_points(points):
     path_directions = []
@@ -213,15 +212,18 @@ def get_directions_from_points(points):
 
     return path_directions
 
+
 def is_path_blocked(points):
     print("checking path validity")
     print("---------------------------")
     print(points)
     print(blocked_tiles)
     print("---------------------------")
-    return not any(point in points for point in blocked_tiles) and all(point[0] >= 0 and point[0] < 60 and point[1] >= 0 and point[1] < 60 for point in points)
+    return not any(point in points for point in blocked_tiles) and all(
+        point[0] >= 0 and point[0] < 60 and point[1] >= 0 and point[1] < 60 for point in points)
 
-a = [8,8]
+
+a = [8, 8]
 b = [20, 18]
 # blocked_tiles = [[10,10], [11,11], [9,8],[8,10],  [7,10]]
 # blocked_tiles = []
@@ -233,7 +235,6 @@ for tile in blocked_tiles:
     bitmap.set(tile[0], tile[1], colour=Colour(255, 0, 0))
 
 path = find_path(a, b, 20)
-
 
 for position in path:
     bitmap.set(position[0], position[1])
