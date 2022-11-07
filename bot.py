@@ -4,6 +4,7 @@ from game_message import Tick, Action, Spawn, Sail, Dock, Anchor, directions
 from test import line, cubicbezier, Bitmap
 from vec2 import vec2
 
+
 class Bot:
 
     def __init__(self):
@@ -29,13 +30,12 @@ class Bot:
         print()
         print()
 
-
         if tick.currentLocation is None:
             print(tick.map.topology)
             print(tick.map.tideLevels)
             for y in range(len(tick.map.topology)):
                 for x in range(len(tick.map.topology[y])):
-                    if tick.map.topology[y][x] >= (tick.map.tideLevels.min + tick.map.tideLevels.max)//2:
+                    if tick.map.topology[y][x] >= (tick.map.tideLevels.min + tick.map.tideLevels.max) // 2:
                         print([x, y], " : ", tick.map.topology[y][x])
                         self.blocked_tiles.append([x, y])
                     if tick.map.topology[y][x] < tick.map.tideLevels.min:
@@ -43,12 +43,12 @@ class Bot:
             self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
             return Spawn(tick.map.ports[0])
 
-
         self.current_position = [tick.currentLocation.column, tick.currentLocation.row]
 
         if self.last_position:
             if self.moving_to_port:
-                if self.current_position[0] != self.last_position[0] or self.current_position[1] != self.last_position[1]:
+                if self.current_position[0] != self.last_position[0] or self.current_position[1] != self.last_position[
+                    1]:
                     self.current_path.pop(0)
                     self.stuck = False
                     self.spent_ticks = max(self.spent_ticks - 1, 0)
@@ -62,7 +62,6 @@ class Bot:
             self.docked_at_spawn = True
             self.first_dock = self.current_position
             return Dock()
-
 
         # t = tick
         # tick.map.topology = []
@@ -78,16 +77,14 @@ class Bot:
 
         port_distances = {}
         for port_position in map_ports:
-            port_distances[(port_position.column, port_position.row)] = abs(vec2(port_position.column - self.current_position[0], port_position.row - self.current_position[1]))
+            port_distances[(port_position.column, port_position.row)] = abs(
+                vec2(port_position.column - self.current_position[0], port_position.row - self.current_position[1]))
         print(port_distances)
         print("Moving: " + str(self.moving_to_port))
         print("Path: " + str(self.current_path))
 
-
-
         if self.spent_ticks >= 12 or self.return_home:
             self.dock_home()
-
 
         if not self.moving_to_port:
             max_attempts = len(port_distances)
@@ -129,8 +126,8 @@ class Bot:
         path_directions = None
         original_path_points = line(from_pos[0], from_pos[1], to_pos[0], to_pos[1])
         path_points = original_path_points.copy()
-        path_midpoint = original_path_points[len(original_path_points)//2]
-        path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi/2
+        path_midpoint = original_path_points[len(original_path_points) // 2]
+        path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi / 2
         isValid = self.is_path_blocked(path_points)
         if not isValid:
             print("PATH INVALID TRYING BEZIER CURVE")
@@ -140,8 +137,8 @@ class Bot:
                 length = (-1 ** attempt_count) * attempt_count
 
                 for i in [-1, 1]:
-                    curve_handle1 = vec2(*path_midpoint).alongAngle(path_angle, i*length)
-                    curve_handle2 = vec2(*path_midpoint).alongAngle(path_angle, i*length)
+                    curve_handle1 = vec2(*path_midpoint).alongAngle(path_angle, i * length)
+                    curve_handle2 = vec2(*path_midpoint).alongAngle(path_angle, i * length)
                     path_points = cubicbezier(from_pos[0], from_pos[1], curve_handle1.x, curve_handle1.y,
                                               curve_handle2.x, curve_handle2.y, to_pos[0], to_pos[1])
                     isValid = self.is_path_blocked(path_points)
@@ -182,8 +179,9 @@ class Bot:
         print(points)
         print(self.blocked_tiles)
         print("---------------------------")
-        return not any(point in points for point in self.blocked_tiles) and all(point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in points)
-
+        return not any(point in points for point in self.blocked_tiles) and all(
+            point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in
+            points)
 
     def get_polar_direction(self, vector_dir):
         h = ""
