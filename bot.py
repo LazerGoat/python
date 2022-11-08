@@ -175,12 +175,13 @@ class Bot:
         path_points = original_path_points.copy()
         path_midpoint = original_path_points[len(original_path_points) // 2]
         path_angle = vec2(to_pos[0] - from_pos[0], to_pos[1] - from_pos[1]).angle() + math.pi / 2
-        isValid = self.is_path_valid(path_points)
-        if not isValid:
+        
+        is_valid = self.is_path_valid(path_points)
+        if not is_valid:
             print("PATH INVALID TRYING BEZIER CURVE")
 
             attempt_count = 0
-            while not isValid and attempt_count <= max_attempt_count:
+            while not is_valid and attempt_count <= max_attempt_count:
                 length = (-1 ** attempt_count) * attempt_count
 
                 for i in [-1, 1]:
@@ -188,17 +189,24 @@ class Bot:
                     curve_handle2 = vec2(*path_midpoint).alongAngle(path_angle, i * length)
                     path_points = cubicbezier(from_pos[0], from_pos[1], curve_handle1.x, curve_handle1.y,
                                               curve_handle2.x, curve_handle2.y, to_pos[0], to_pos[1])
-                    isValid = self.is_path_valid(path_points)
-                    if isValid:
+                    is_valid = self.is_path_valid(path_points)
+                    if is_valid:
                         path_directions = get_directions_from_points(path_points)
                         break
                 attempt_count -= -1
 
-            if not isValid:
+            if not is_valid:
                 path_directions = get_directions_from_points(original_path_points)
         else:
             path_directions = get_directions_from_points(path_points)
 
+        self.update_debug_map(path_points)
+
+        print("Path: ", path_directions)
+
+        return path_directions
+
+    def update_debug_map(self, path_points):
         print("Selected path:")
         bitmap = Bitmap(self.map_size[0], self.map_size[1])
         # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
@@ -207,17 +215,11 @@ class Bot:
             # print(position)
         for tile in self.blocked_tiles:
             bitmap.set_symbol(tile[0], self.map_size[1] - tile[1], '█')
-
         for port in self.ports:
             bitmap.set_symbol(port.column, self.map_size[1] - port.row, 'P')
-
         bitmap.set_symbol(self.current_position[0], self.map_size[1] - self.current_position[1], '@')
-
+        bitmap.set_symbol(self.target_port.column, self.map_size[1] - self.target_port.row, '!')
         bitmap.chardisplay()
-
-        print("Path: ", path_directions)
-
-        return path_directions
 
     def is_path_valid(self, points):
         print("checking path validity")
@@ -240,4 +242,3 @@ class Bot:
         # return not any(point in points for point in self.blocked_tiles) and all(
         #     point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in
         #     points)
-
