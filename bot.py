@@ -5,9 +5,38 @@ from test import line, cubicbezier, Bitmap
 from vec2 import vec2
 
 
+def get_directions_from_points(points):
+    path_directions = []
+    last_point = None
+    for point in points:
+        if last_point:
+            direction = [point[0] - last_point[0], point[1] - last_point[1]]
+            path_directions.append(direction)
+        last_point = point
+
+    return path_directions
+
+
+def get_polar_direction(vector_dir):
+    h = ""
+    v = ""
+    if vector_dir[0] > 0:
+        h = "E"
+    elif vector_dir[0] < 0:
+        h = "W"
+
+    if vector_dir[1] > 0:
+        v = "S"
+    elif vector_dir[1] < 0:
+        v = "N"
+
+    return v + h
+
+
 class Bot:
 
     def __init__(self):
+        self.ports = None
         print("Initializing your super mega duper bot")
         self.moving_to_port = False
         self.current_path = None
@@ -44,7 +73,7 @@ class Bot:
                         self.blocked_tiles.append([x, y])
                     if tick.map.topology[y][x] < tick.map.tideLevels.min:
                         self.free_tiles.append([x, y])
-
+            self.ports = tick.map.ports
             self.topology = tick.map.topology
             self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
             return Spawn(tick.map.ports[0])
@@ -110,7 +139,7 @@ class Bot:
             else:
                 print("No port found")
                 self.dock_home()
-                return Sail(self.get_polar_direction(self.current_path[0]))
+                return Sail(get_polar_direction(self.current_path[0]))
 
         if self.moving_to_port:
             if len(self.current_path) == 0:
@@ -128,7 +157,7 @@ class Bot:
                     print("No path found ( I'm stuck :( )")
                     return Anchor()
 
-                return Sail(self.get_polar_direction(self.current_path[0]))
+                return Sail(get_polar_direction(self.current_path[0]))
 
         return Anchor()
 
@@ -161,40 +190,32 @@ class Bot:
                                               curve_handle2.x, curve_handle2.y, to_pos[0], to_pos[1])
                     isValid = self.is_path_valid(path_points)
                     if isValid:
-                        path_directions = self.get_directions_from_points(path_points)
+                        path_directions = get_directions_from_points(path_points)
                         break
                 attempt_count -= -1
 
             if not isValid:
-                path_directions = self.get_directions_from_points(original_path_points)
+                path_directions = get_directions_from_points(original_path_points)
         else:
-            path_directions = self.get_directions_from_points(path_points)
+            path_directions = get_directions_from_points(path_points)
 
         print("Selected path:")
         bitmap = Bitmap(self.map_size[0], self.map_size[1])
         # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
         for p in path_points:
-            bitmap.set(p[0], self.map_size[1] - p[1])
+            bitmap.set_symbol(p[0], self.map_size[1] - p[1], '*')
             # print(position)
         for tile in self.blocked_tiles:
-            bitmap.set_symbol(tile[0], self.map_size[1] - tile[1], 'X')
+            bitmap.set_symbol(tile[0], self.map_size[1] - tile[1], '█')
 
-        bitmap.set_symbol(self.current_position[0], self.map_size[1] - self.current_position[1], '0')
+        for port in self.ports:
+            bitmap.set_symbol(port.column, self.map_size[1] - port.row, 'P')
+
+        bitmap.set_symbol(self.current_position[0], self.map_size[1] - self.current_position[1], '@')
 
         bitmap.chardisplay()
 
         print("Path: ", path_directions)
-
-        return path_directions
-
-    def get_directions_from_points(self, points):
-        path_directions = []
-        last_point = None
-        for point in points:
-            if last_point:
-                direction = [point[0] - last_point[0], point[1] - last_point[1]]
-                path_directions.append(direction)
-            last_point = point
 
         return path_directions
 
@@ -220,17 +241,3 @@ class Bot:
         #     point[0] >= 0 and point[0] < self.map_size[0] and point[1] >= 0 and point[1] < self.map_size[1] for point in
         #     points)
 
-    def get_polar_direction(self, vector_dir):
-        h = ""
-        v = ""
-        if vector_dir[0] > 0:
-            h = "E"
-        elif vector_dir[0] < 0:
-            h = "W"
-
-        if vector_dir[1] > 0:
-            v = "S"
-        elif vector_dir[1] < 0:
-            v = "N"
-
-        return v + h

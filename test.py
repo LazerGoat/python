@@ -12,33 +12,19 @@ white = Colour(255, 255, 255)  # Colour ranges are not enforced.
 
 
 class Bitmap():
-    def __init__(self, width=40, height=40, background=white):
-        assert width > 0 and height > 0 and type(background) == Colour
+    def __init__(self, width=60, height=60, background=white):
         self.width = width
         self.height = height
         self.background = background
-        self.map = [[background.copy() for w in range(width)] for h in range(height)]
-
-    def fillrect(self, x, y, width, height, colour=black):
-        assert x >= 0 and y >= 0 and width > 0 and height > 0 and type(colour) == Colour
-        for h in range(height):
-            for w in range(width):
-                self.map[y + h][x + w] = colour.copy()
+        self.map = [[' ' for w in range(width)] for h in range(height)]
 
     def chardisplay(self):
-        txt = []
-        for row in self.map:
-            for bit in row:
-                if bit == self.background:
-                    txt += ' '
-                else:
-                    txt += '@'
-
-        # Boxing
-        txt = ['|' + row + '|' for row in txt]
-        txt.insert(0, '+' + '-' * self.width + '+')
-        txt.append('+' + '-' * self.width + '+')
-        print('\n'.join(reversed(txt)))
+        txt = ""
+        for i in range(self.height):
+            for j in range(self.width):
+                txt += self.map[i][j]
+            txt += '\n'
+        print(txt)
 
     def set(self, x, y, colour=black):
         assert type(colour) == Colour
@@ -144,6 +130,7 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 
     return filtered_line_pts
 
+
 # Bitmap.cubicbezier = cubicbezier
 #
 # bitmap = Bitmap(60, 60)
@@ -242,7 +229,7 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 # # blocked_tiles = []
 # blocked_tiles = line(0, 10, 21, 10) + line(0, 11, 21, 10)
 #
-# bitmap = Bitmap(60, 60)
+bitmap = Bitmap(60, 60)
 # #
 # for tile in blocked_tiles:
 #     bitmap.set(tile[0], tile[1], colour=Colour(255, 0, 0))
@@ -253,4 +240,5 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 #     bitmap.set(position[0], position[1])
 #     print(position)
 #
-# bitmap.chardisplay()
+
+bitmap.chardisplay()
