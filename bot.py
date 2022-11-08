@@ -217,8 +217,9 @@ class Bot:
             bitmap.set_symbol(tile[0], self.map_size[1] - tile[1], '█')
         for port in self.ports:
             bitmap.set_symbol(port.column, self.map_size[1] - port.row, 'P')
+
         bitmap.set_symbol(self.current_position[0], self.map_size[1] - self.current_position[1], '@')
-        bitmap.set_symbol(self.target_port.column, self.map_size[1] - self.target_port.row, '!')
+        bitmap.set_symbol(self.target_port[0], self.map_size[1] - self.target_port[1], '!')
         bitmap.chardisplay()
 
     def is_path_valid(self, points):
