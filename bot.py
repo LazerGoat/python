@@ -211,15 +211,15 @@ class Bot:
         bitmap = Bitmap(self.map_size[0], self.map_size[1])
         # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
         for p in path_points:
-            bitmap.set_symbol(p[0], self.map_size[1] - p[1], '*')
+            bitmap.set_symbol(p[0], p[1], '*')
             # print(position)
         for tile in self.blocked_tiles:
-            bitmap.set_symbol(tile[0], self.map_size[1] - tile[1], '█')
+            bitmap.set_symbol(tile[0], tile[1], '█')
         for port in self.ports:
-            bitmap.set_symbol(port.column, self.map_size[1] - port.row, 'P')
+            bitmap.set_symbol(port.column, port.row, 'P')
 
-        bitmap.set_symbol(self.current_position[0], self.map_size[1] - self.current_position[1], '@')
-        bitmap.set_symbol(self.target_port[0], self.map_size[1] - self.target_port[1], '!')
+        bitmap.set_symbol(self.current_position[0], self.current_position[1], '@')
+        bitmap.set_symbol(self.target_port[0], self.target_port[1], '!')
         bitmap.chardisplay()
 
     def is_path_valid(self, points):
