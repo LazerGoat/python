@@ -1,5 +1,6 @@
 import math
 
+
 class vec2:
     """A two-dimensional vector with Cartesian coordinates."""
 
@@ -8,7 +9,7 @@ class vec2:
 
     def __str__(self):
         """Human-readable string representation of the vector."""
-        return '{:g}i + {:g}j'.format(self.x, self.y)
+        return "{:g}i + {:g}j".format(self.x, self.y)
 
     def __repr__(self):
         """Unambiguous string representation of the vector."""
@@ -18,8 +19,9 @@ class vec2:
         """The scalar (dot) product of self and other. Both must be vectors."""
 
         if not isinstance(other, vec2):
-            raise TypeError('Can only take dot product of two Vector2D objects')
+            raise TypeError("Can only take dot product of two Vector2D objects")
         return self.x * other.x + self.y * other.y
+
     # Alias the __matmul__ method to dot so we can use a @ b as well as a.dot(b).
     __matmul__ = dot
 
@@ -36,7 +38,7 @@ class vec2:
 
         if isinstance(scalar, int) or isinstance(scalar, float):
             return vec2(self.x * scalar, self.y * scalar)
-        raise NotImplementedError('Can only multiply Vector2D by a scalar')
+        raise NotImplementedError("Can only multiply Vector2D by a scalar")
 
     def __rmul__(self, scalar):
         """Reflected multiplication so vector * scalar also works."""

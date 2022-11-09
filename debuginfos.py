@@ -1,29 +1,26 @@
-import math
 from collections import namedtuple
 from copy import copy
 
-from vec2 import vec2
-
-Colour = namedtuple('Colour', 'r,g,b')
+Colour = namedtuple("Colour", "r,g,b")
 Colour.copy = lambda self: copy(self)
 
 black = Colour(0, 0, 0)
 white = Colour(255, 255, 255)  # Colour ranges are not enforced.
 
 
-class Bitmap():
+class DebugMap:
     def __init__(self, width=60, height=60, background=white):
         self.width = width
         self.height = height
         self.background = background
-        self.map = [[' ' for w in range(width)] for h in range(height)]
+        self.map = [[" " for w in range(width)] for h in range(height)]
 
     def chardisplay(self):
         txt = ""
         for i in range(self.height):
             for j in range(self.width):
                 txt += self.map[i][j]
-            txt += '\n'
+            txt += "\n"
         print(txt)
 
     def set(self, x, y, colour=black):
@@ -43,45 +40,9 @@ class Bitmap():
         return self.map[y][x]
 
 
-def line(x0, y0, x1, y1):
-    "Bresenham's line algorithm"
-    positions = []
-    dx = abs(x1 - x0)
-    dy = abs(y1 - y0)
-    x, y = x0, y0
-    sx = -1 if x0 > x1 else 1
-    sy = -1 if y0 > y1 else 1
-    if dx > dy:
-        err = dx / 2.0
-        while x != x1:
-            positions.append([x, y])
-            # self.set(x, y)
-            err -= dy
-            if err < 0:
-                y += sy
-                err += dx
-            x += sx
-    else:
-        err = dy / 2.0
-        while y != y1:
-            positions.append([x, y])
-
-            # self.set(x, y)
-            err -= dx
-            if err < 0:
-                x += sx
-                err += dy
-            y += sy
-    positions.append([x, y])
-    # print(positions)
-
-    # self.set(x, y)
-    return positions
-
-
-# Bitmap.line = line
+# debugmap.line = line
 #
-# bitmap = Bitmap(17, 17)
+# bitmap = debugmap(17, 17)
 # # for points in ((1,8,8,16),(8,16,16,8),(16,8,8,1),(8,1,1,8)):
 # #     bitmap.line(*points)
 # # bitmap.line(0,0, 16, 1)
@@ -93,47 +54,9 @@ def line(x0, y0, x1, y1):
 # bitmap.chardisplay()
 
 
-def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
-    line_pts = []
-    pts = []
-    for i in range(n + 1):
-        t = i / n
-        a = (1. - t) ** 3
-        b = 3. * t * (1. - t) ** 2
-        c = 3.0 * t ** 2 * (1.0 - t)
-        d = t ** 3
-
-        x = int(a * x0 + b * x1 + c * x2 + d * x3)
-        y = int(a * y0 + b * y1 + c * y2 + d * y3)
-        pts.append((x, y))
-
-    for i in range(n):
-        line_pts += line(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1])
-
-    last_point = None
-    filtered_line_pts = []
-    for i in range(len(line_pts)):
-        if last_point:
-            if line_pts[i][0] != last_point[0] or line_pts[i][1] != last_point[1]:
-                filtered_line_pts.append(line_pts[i])
-        else:
-            filtered_line_pts.append(line_pts[i])
-        last_point = line_pts[i]
-
-    # bitmap = Bitmap(60, 60)
-    # # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
-    # for position in filtered_line_pts:
-    #     bitmap.set(position[0], position[1])
-    #     # print(position)
-    #
-    # bitmap.chardisplay()
-
-    return filtered_line_pts
-
-
-# Bitmap.cubicbezier = cubicbezier
+# debugmap.cubicbezier = cubicbezier
 #
-# bitmap = Bitmap(60, 60)
+# bitmap = debugmap(60, 60)
 # # bitmap.cubicbezier(16, 1, 1, 4, 3, 16, 15, 11)
 # for position in cubicbezier(8, 1, 16, 8, 17, 8, 8, 15):
 #     bitmap.set(position[0], position[1])
@@ -141,7 +64,7 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 #
 # bitmap.chardisplay()
 
-# bitmap = Bitmap(100, 100)
+# bitmap = debugmap(100, 100)
 #
 # a = vec2(0, 0)
 # b = vec2(50, 50)
@@ -214,7 +137,7 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 #
 #
 # def is_path_blocked(points):
-#     print("checking path validity")
+#     print("checking path.py validity")
 #     print("---------------------------")
 #     print(points)
 #     print(blocked_tiles)
@@ -229,14 +152,14 @@ def cubicbezier(x0, y0, x1, y1, x2, y2, x3, y3, n=20):
 # # blocked_tiles = []
 # blocked_tiles = line(0, 10, 21, 10) + line(0, 11, 21, 10)
 #
-bitmap = Bitmap(60, 60)
+bitmap = DebugMap(60, 60)
 # #
 # for tile in blocked_tiles:
 #     bitmap.set(tile[0], tile[1], colour=Colour(255, 0, 0))
 #
-# path = find_path(a, b, 20)
+# path.py = find_path(a, b, 20)
 #
-# for position in path:
+# for position in path.py:
 #     bitmap.set(position[0], position[1])
 #     print(position)
 #

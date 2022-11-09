@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import asyncio
-import os
-import websockets
 import json
+import os
+
+import websockets
 
 from bot import Bot
 from game_message import Tick
@@ -15,9 +16,13 @@ async def run():
     async with websockets.connect(uri) as websocket:
         bot = Bot()
         if "TOKEN" in os.environ:
-            await websocket.send(json.dumps({"type": "REGISTER", "token": os.environ["TOKEN"]}))
+            await websocket.send(
+                json.dumps({"type": "REGISTER", "token": os.environ["TOKEN"]})
+            )
         else:
-            await websocket.send(json.dumps({"type": "REGISTER", "teamName": "MyPythonicBot"}))
+            await websocket.send(
+                json.dumps({"type": "REGISTER", "teamName": "MyPythonicBot"})
+            )
 
         await game_loop(websocket=websocket, bot=bot)
 
@@ -37,7 +42,7 @@ async def game_loop(websocket: websockets.WebSocketServerProtocol, bot: Bot):
         payload = {
             "type": "COMMAND",
             "tick": game_message.currentTick,
-            "action": bot.get_next_move(game_message).to_dict()
+            "action": bot.get_next_move(game_message).to_dict(),
         }
 
         await websocket.send(json.dumps(payload))
