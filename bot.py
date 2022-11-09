@@ -50,18 +50,7 @@ class Bot:
         print()
 
         if tick.currentLocation is None:
-            print(tick.map.topology)
-            print(tick.map.tideLevels)
-            for y in range(len(tick.map.topology)):
-                for x in range(len(tick.map.topology[y])):
-                    if tick.map.topology[y][x] >= (tick.map.tideLevels.min + tick.map.tideLevels.max) // 2:
-                        print([x, y], " : ", tick.map.topology[y][x])
-                        self.blocked_tiles.append([x, y])
-                    if tick.map.topology[y][x] < tick.map.tideLevels.min:
-                        self.free_tiles.append([x, y])
-            self.ports = tick.map.ports
-            self.topology = tick.map.topology
-            self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
+            self.game_init(tick)
             return self.return_move(Spawn(tick.map.ports[0]))
 
         self.current_tide = tick.tideSchedule[
@@ -104,13 +93,11 @@ class Bot:
             map_ports.remove(v)
 
         port_distances = {}
+        # problematic
         for port_position in map_ports:
-            port_distances[(port_position.column, port_position.row)] = abs(
-                vec2(
-                    port_position.column - self.current_position[0],
-                    port_position.row - self.current_position[1],
-                )
-            )
+            port_distances[(port_position.column, port_position.row)] = len(
+                self.find_path(self.current_position, list([port_position.column, port_position.row])))
+
         print(port_distances)
 
         # print("Moving: " + str(self.moving_to_port))
@@ -162,6 +149,20 @@ class Bot:
                 return self.return_move(Sail(get_polar_direction(self.current_path[0])))
 
         return self.return_move(Anchor())
+
+    def game_init(self, tick):
+        print(tick.map.topology)
+        print(tick.map.tideLevels)
+        for y in range(len(tick.map.topology)):
+            for x in range(len(tick.map.topology[y])):
+                if tick.map.topology[y][x] >= (tick.map.tideLevels.min + tick.map.tideLevels.max) // 2:
+                    print([x, y], " : ", tick.map.topology[y][x])
+                    self.blocked_tiles.append([x, y])
+                if tick.map.topology[y][x] < tick.map.tideLevels.min:
+                    self.free_tiles.append([x, y])
+        self.ports = tick.map.ports
+        self.topology = tick.map.topology
+        self.map_size = [len(tick.map.topology[0]), len(tick.map.topology)]
 
     def return_move(self, move: Union[Sail, Dock, Anchor, Spawn]):
         print("Move: ", move)
@@ -217,7 +218,7 @@ class Bot:
                             attempt_count -= -1
             print("Found valid path.py after ", attempt_count, " curve attempts.")
 
-        self.update_debug_map(path.points)
+        # self.update_debug_map(path.points)
 
         print("path.py: ", path.directions)
 
@@ -235,8 +236,9 @@ class Bot:
         for port in self.ports:
             debug_map.set_symbol(port.column, port.row, "P")
 
-        debug_map.set_symbol(self.current_position[0], self.current_position[1], "@")
         debug_map.set_symbol(self.target_port[0], self.target_port[1], "!")
+        debug_map.set_symbol(self.current_position[0], self.current_position[1], "@")
+
         debug_map.chardisplay()
 
     def is_path_valid(self, path: Path):

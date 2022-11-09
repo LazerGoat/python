@@ -17,6 +17,10 @@ class Path:
         return cls(cls.line(_from[0], _from[1], _to[0], _to[1]))
 
     @classmethod
+    def len(cls):
+        return len(cls.points)
+
+    @classmethod
     def from_curve(cls, _from: list, _to: list, _curve_vec: list):
         return cls(
             cls.cubicbezier(
